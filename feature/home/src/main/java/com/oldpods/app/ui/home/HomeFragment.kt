@@ -1,17 +1,20 @@
 package com.oldpods.app.ui.home
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.oldpods.app.common.AppNavigator
 import com.oldpods.app.common.PrefsManager
 
 class HomeFragment : Fragment() {
@@ -26,6 +29,17 @@ class HomeFragment : Fragment() {
     private lateinit var tvRandom: TextView
 
     private lateinit var adapter: HomeAppAdapter
+    private var navigator: AppNavigator? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        if (context is AppNavigator) navigator = context
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        navigator = null
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.fragment_home, container, false)
@@ -45,7 +59,8 @@ class HomeFragment : Fragment() {
         tvRandom = view.findViewById(R.id.tv_random)
 
         adapter = HomeAppAdapter { appInfo ->
-            val bundle = Bundle().apply { putString("app_id", appInfo.id.toString()) }
+            navigator?.navigateToDetail(appInfo.id.toString())
+                ?: Toast.makeText(context, appInfo.getTitleText(), Toast.LENGTH_SHORT).show()
         }
 
         recyclerView.layoutManager = LinearLayoutManager(context)
@@ -67,7 +82,13 @@ class HomeFragment : Fragment() {
 
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { viewModel.search(it) }
+                query?.let {
+                    PrefsManager.addSearchHistory(requireContext(), it)
+                    navigator?.navigateToSearch(it)
+                        ?: Toast.makeText(context, "搜索: $it", Toast.LENGTH_SHORT).show()
+                    searchView.setQuery("", false)
+                    searchView.isIconified = true
+                }
                 return true
             }
             override fun onQueryTextChange(newText: String?): Boolean = false
@@ -75,14 +96,13 @@ class HomeFragment : Fragment() {
 
         tvRandom.setOnClickListener { viewModel.loadRandomPost() }
 
-        viewModel.setApiMode(PrefsManager.getApiMode(requireContext()))
-
         viewModel.appList.observe(viewLifecycleOwner) { list ->
             adapter.submitList(list)
             tvEmpty.visibility = if (list.isEmpty() && viewModel.isLoading.value != true) View.VISIBLE else View.GONE
         }
         viewModel.isLoading.observe(viewLifecycleOwner) { loading ->
             progressBar.visibility = if (loading && viewModel.appList.value.isNullOrEmpty()) View.VISIBLE else View.GONE
+            if (!loading) swipeRefresh.isRefreshing = false
         }
         viewModel.isLoadingMore.observe(viewLifecycleOwner) { loading ->
             tvLoadMore.visibility = if (loading) View.VISIBLE else View.GONE

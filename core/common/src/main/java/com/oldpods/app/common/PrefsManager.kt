@@ -3,6 +3,7 @@ package com.oldpods.app.common
 import android.content.Context
 import android.content.SharedPreferences
 import com.oldpods.app.model.ApiMode
+import org.json.JSONArray
 
 object PrefsManager {
     private const val PREFS_NAME = "oldpods_prefs"
@@ -21,6 +22,8 @@ object PrefsManager {
     private const val KEY_VIP_LEVEL = "vip_level"
     private const val KEY_VIP_EXP_DATE = "vip_exp_date"
     private const val KEY_DESCRIPTION = "description"
+    private const val KEY_SEARCH_HISTORY = "search_history"
+    private const val MAX_SEARCH_HISTORY = 10
 
     private fun getPrefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -67,6 +70,30 @@ object PrefsManager {
 
     fun getDescription(context: Context): String = getPrefs(context).getString(KEY_DESCRIPTION, "") ?: ""
     fun setDescription(context: Context, value: String) = getPrefs(context).edit().putString(KEY_DESCRIPTION, value).apply()
+
+    fun getSearchHistory(context: Context): List<String> {
+        val json = getPrefs(context).getString(KEY_SEARCH_HISTORY, null) ?: return emptyList()
+        return try {
+            val array = JSONArray(json)
+            (0 until array.length()).map { array.getString(it) }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    fun addSearchHistory(context: Context, query: String) {
+        if (query.isBlank()) return
+        val history = getSearchHistory(context).toMutableList()
+        history.remove(query)
+        history.add(0, query)
+        val trimmed = if (history.size > MAX_SEARCH_HISTORY) history.subList(0, MAX_SEARCH_HISTORY) else history
+        val array = JSONArray(trimmed)
+        getPrefs(context).edit().putString(KEY_SEARCH_HISTORY, array.toString()).apply()
+    }
+
+    fun clearSearchHistory(context: Context) {
+        getPrefs(context).edit().remove(KEY_SEARCH_HISTORY).apply()
+    }
 
     fun saveUserInfo(context: Context, userId: String, email: String, uuid: String) {
         getPrefs(context).edit().apply {

@@ -67,14 +67,6 @@ interface ApiService {
     @GET("wp-json/wp/v2/media/{id}")
     suspend fun getMediaInfo(@Path("id") id: Int): Response<MediaInfo>
 
-    @GET("wp-json/wp/v2/search")
-    suspend fun search(
-        @Query("search") query: String,
-        @Query("type") type: String = "post",
-        @Query("page") page: Int = 1,
-        @Query("per_page") perPage: Int = 15
-    ): Response<List<AppInfo>>
-
     // Forum
     @GET("wp-json/wp/v2/plate_cat")
     suspend fun getForumBoards(
@@ -87,79 +79,7 @@ interface ApiService {
         @Query("per_page") perPage: Int = 50
     ): Response<List<ForumComment>>
 
-    // ========== Weavetech API (POST!) ==========
-
-    @POST("weavetech/user/bjshcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getBjshPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/ltsjcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getLtsjPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/sygjcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getSygjPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/tssbcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getTssbPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/tsydcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getTsydPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/xlbgcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getXlbgPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/xxjycategory/index.php")
-    @FormUrlEncoded
-    suspend fun getXxjyPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/yxcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getYxPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/yystcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getYystPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    @POST("weavetech/user/ztmhcategory/index.php")
-    @FormUrlEncoded
-    suspend fun getZtmhPosts(
-        @Field("page") page: Int = 1,
-        @Field("page_size") pageSize: Int = 15
-    ): Response<WeavetechResponse>
-
-    // ========== Auth (Weavetech) ==========
+    // ========== Auth (Weavetech - kept for login) ==========
 
     @POST("weavetech/user/usermail/index.php")
     @FormUrlEncoded

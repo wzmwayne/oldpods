@@ -9,10 +9,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.oldpods.app.ui.dashboard.R
 import com.oldpods.app.model.AppInfo
 
-class DashboardAppAdapter : ListAdapter<AppInfo, DashboardAppAdapter.ViewHolder>(DiffCallback) {
+class DashboardAppAdapter(
+    private val onItemClick: (AppInfo) -> Unit = {}
+) : ListAdapter<AppInfo, DashboardAppAdapter.ViewHolder>(DiffCallback) {
 
     object DiffCallback : DiffUtil.ItemCallback<AppInfo>() {
         override fun areItemsTheSame(old: AppInfo, new: AppInfo) = old.id == new.id
@@ -42,5 +43,7 @@ class DashboardAppAdapter : ListAdapter<AppInfo, DashboardAppAdapter.ViewHolder>
                 .placeholder(android.R.drawable.ic_menu_gallery)
                 .into(holder.ivIcon)
         }
+
+        holder.itemView.setOnClickListener { onItemClick(app) }
     }
 }

@@ -4,24 +4,22 @@ object CategoryMapping {
     data class CategoryDef(
         val id: Int,
         val name: String,
-        val endpoint: String,
         val wpCategoryId: Int
     )
 
     val categories = listOf(
-        CategoryDef(1, "聊天社交", "ltsjcategory", 0),
-        CategoryDef(2, "影音视听", "yystcategory", 0),
-        CategoryDef(3, "图书阅读", "tsydcategory", 0),
-        CategoryDef(4, "效率办公", "xlbgcategory", 0),
-        CategoryDef(5, "实用工具", "sygjcategory", 0),
-        CategoryDef(6, "便捷生活", "bjshcategory", 0),
-        CategoryDef(7, "学习教育", "xxjycategory", 0),
-        CategoryDef(8, "主题美化", "ztmhcategory", 0),
-        CategoryDef(9, "游戏", "yxcategory", 0),
-        CategoryDef(10, "特殊设备", "tssbcategory", 0)
+        CategoryDef(1, "聊天社交", 0),
+        CategoryDef(2, "影音视听", 0),
+        CategoryDef(3, "图书阅读", 0),
+        CategoryDef(4, "效率办公", 0),
+        CategoryDef(5, "实用工具", 0),
+        CategoryDef(6, "便捷生活", 0),
+        CategoryDef(7, "学习教育", 0),
+        CategoryDef(8, "主题美化", 0),
+        CategoryDef(9, "游戏", 0),
+        CategoryDef(10, "特殊设备", 0)
     )
 
-    // Known topics from website
     data class TopicDef(val id: Int, val name: String, val postCount: Int)
 
     val topics = listOf(

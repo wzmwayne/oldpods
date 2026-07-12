@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.oldpods.app.model.AppInfo
-import com.oldpods.app.model.ApiMode
 import com.oldpods.app.repository.AppRepository
 import kotlinx.coroutines.launch
 
@@ -27,11 +26,6 @@ class HomeViewModel : ViewModel() {
 
     private var currentPage = 1
     private var hasMoreData = true
-    private var isWebMode = true
-
-    fun setApiMode(mode: ApiMode) {
-        isWebMode = (mode == ApiMode.WEB)
-    }
 
     fun fetchAppList(page: Int = 1) {
         if (_isLoading.value == true) return
@@ -42,10 +36,11 @@ class HomeViewModel : ViewModel() {
 
             val result = repository.getAppList(page)
             result.onSuccess { list ->
+                val resolved = repository.resolveImages(list)
                 if (page == 1) {
-                    _appList.value = list
+                    _appList.value = resolved
                 } else {
-                    _appList.value = (_appList.value ?: emptyList()) + list
+                    _appList.value = (_appList.value ?: emptyList()) + resolved
                 }
                 currentPage = page
                 hasMoreData = list.size >= 15
@@ -64,25 +59,12 @@ class HomeViewModel : ViewModel() {
             _isLoadingMore.value = true
             val result = repository.getAppList(currentPage + 1)
             result.onSuccess { list ->
-                _appList.value = (_appList.value ?: emptyList()) + list
+                val resolved = repository.resolveImages(list)
+                _appList.value = (_appList.value ?: emptyList()) + resolved
                 currentPage++
                 hasMoreData = list.size >= 15
             }
             _isLoadingMore.value = false
-        }
-    }
-
-    fun search(query: String) {
-        viewModelScope.launch {
-            _isLoading.value = true
-            val result = repository.searchApps(query)
-            result.onSuccess { list ->
-                _appList.value = list
-                hasMoreData = list.size >= 15
-            }.onFailure {
-                _error.value = it.message
-            }
-            _isLoading.value = false
         }
     }
 
@@ -91,7 +73,8 @@ class HomeViewModel : ViewModel() {
             _isLoading.value = true
             val result = repository.getRandomPost()
             result.onSuccess { post ->
-                _appList.value = listOf(post)
+                val resolved = repository.resolveImage(post)
+                _appList.value = listOf(resolved)
             }.onFailure {
                 _error.value = it.message
             }

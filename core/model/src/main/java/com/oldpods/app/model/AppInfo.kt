@@ -24,7 +24,8 @@ data class AppInfo(
     // Non-serialized fields set manually
     var imageUrl: String? = null,
     var appSize: String? = null,
-    var androidVersion: String? = null
+    var androidVersion: String? = null,
+    var downloadLinks: List<DownloadLink> = emptyList()
 ) {
     data class Title(
         @SerializedName("rendered") val rendered: String? = null
@@ -54,4 +55,12 @@ data class AppInfo(
     fun getTitleText(): String = title?.rendered ?: ""
     fun getContentText(): String = content?.rendered ?: ""
     fun getExcerptText(): String = excerpt?.rendered ?: ""
+}
+
+data class DownloadLink(
+    val name: String,
+    val url: String,
+    val type: LinkType = LinkType.LANZOU
+) {
+    enum class LinkType { GOLINK, LANZOU, BAIDU, QUARK, DIRECT }
 }

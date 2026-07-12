@@ -1,18 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
     app:startDestination="@id/navigation_home">
 
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.oldpods.app.ui.home.HomeFragment"
-        android:label="@string/nav_home" />
+        android:label="@string/nav_home">
+        <action
+            android:id="@+id/action_home_to_detail"
+            app:destination="@id/navigation_detail" />
+        <action
+            android:id="@+id/action_home_to_search"
+            app:destination="@id/navigation_search" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_dashboard"
         android:name="com.oldpods.app.ui.dashboard.DashboardFragment"
-        android:label="@string/nav_dashboard" />
+        android:label="@string/nav_dashboard">
+        <action
+            android:id="@+id/action_dashboard_to_detail"
+            app:destination="@id/navigation_detail" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_notifications"
@@ -29,24 +41,34 @@
         android:label="登录" />
 
     <fragment
+        android:id="@+id/navigation_detail"
+        android:name="com.oldpods.app.ui.detail.AppDetailFragment"
+        android:label="应用详情">
+        <argument
+            android:name="app_id"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="com.oldpods.app.ui.search.SearchFragment"
+        android:label="搜索">
+        <argument
+            android:name="search_query"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+    <fragment
         android:id="@+id/navigation_forum"
         android:name="com.oldpods.app.ui.forum.ForumFragment"
         android:label="论坛" />
 
     <fragment
-        android:id="@+id/navigation_detail"
-        android:name="com.oldpods.app.ui.detail.AppDetailFragment"
-        android:label="应用详情" />
-
-    <fragment
         android:id="@+id/navigation_ai"
         android:name="com.oldpods.app.ui.ai.AiFragment"
         android:label="AI 功能" />
-
-    <fragment
-        android:id="@+id/navigation_search"
-        android:name="com.oldpods.app.ui.search.SearchFragment"
-        android:label="搜索" />
 
     <fragment
         android:id="@+id/navigation_download"

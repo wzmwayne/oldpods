@@ -4,8 +4,64 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="12dp">
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_view"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_search"
+        android:queryHint="搜索应用"
+        android:iconifiedByDefault="false"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:id="@+id/tv_history_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="搜索历史"
+        android:textSize="14sp"
+        android:textColor="@color/text_secondary"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/history_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="4dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_clear_history"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="清除历史"
+        android:textSize="12sp"
+        android:textColor="@color/grey_text"
+        android:layout_gravity="end"
+        android:padding="8dp"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:text="无搜索结果"
+        android:textColor="@color/grey_text"
+        android:visibility="gone" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_results"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
 </LinearLayout>

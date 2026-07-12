@@ -1,19 +1,20 @@
 package com.oldpods.app.repository
 
 import com.oldpods.app.api.ApiClient
-import com.oldpods.app.api.ApiService
-import com.oldpods.app.common.Constants
 import com.oldpods.app.common.safeApiCall
 import com.oldpods.app.model.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 class AppRepository {
 
-    private val apiService: ApiService = ApiClient.getApiService()
+    private val apiService = ApiClient.getApiService()
 
     // ========== WordPress REST API ==========
 
     suspend fun getAppList(page: Int = 1): Result<List<AppInfo>> = safeApiCall {
-        apiService.getAppList(page, Constants.DEFAULT_PER_PAGE)
+        apiService.getAppList(page, 15)
     }
 
     suspend fun getAppDetail(id: String): Result<AppInfo> = safeApiCall {
@@ -64,23 +65,33 @@ class AppRepository {
         apiService.getComments(postId)
     }
 
-    // ========== Weavetech API (POST) ==========
+    // ========== Image Resolution ==========
 
-    suspend fun getWeavetechPosts(categoryEndpoint: String, page: Int = 1): Result<WeavetechResponse> {
-        return safeApiCall {
-            when (categoryEndpoint) {
-                "bjshcategory" -> apiService.getBjshPosts(page)
-                "ltsjcategory" -> apiService.getLtsjPosts(page)
-                "sygjcategory" -> apiService.getSygjPosts(page)
-                "tssbcategory" -> apiService.getTssbPosts(page)
-                "tsydcategory" -> apiService.getTsydPosts(page)
-                "xlbgcategory" -> apiService.getXlbgPosts(page)
-                "xxjycategory" -> apiService.getXxjyPosts(page)
-                "yxcategory" -> apiService.getYxPosts(page)
-                "yystcategory" -> apiService.getYystPosts(page)
-                "ztmhcategory" -> apiService.getZtmhPosts(page)
-                else -> throw IllegalArgumentException("Unknown endpoint: $categoryEndpoint")
+    suspend fun resolveImages(apps: List<AppInfo>): List<AppInfo> = coroutineScope {
+        apps.map { app ->
+            async {
+                if (app.featuredMedia > 0 && app.imageUrl == null) {
+                    try {
+                        val media = apiService.getMediaInfo(app.featuredMedia)
+                        if (media.isSuccessful) {
+                            app.imageUrl = media.body()?.sourceUrl
+                        }
+                    } catch (_: Exception) {}
+                }
+                app
             }
+        }.awaitAll()
+    }
+
+    suspend fun resolveImage(app: AppInfo): AppInfo {
+        if (app.featuredMedia > 0 && app.imageUrl == null) {
+            try {
+                val media = apiService.getMediaInfo(app.featuredMedia)
+                if (media.isSuccessful) {
+                    app.imageUrl = media.body()?.sourceUrl
+                }
+            } catch (_: Exception) {}
         }
+        return app
     }
 }

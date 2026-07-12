@@ -9,6 +9,7 @@ import android.widget.Button
 import android.widget.RadioButton
 import android.widget.RadioGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import com.oldpods.app.common.PrefsManager
@@ -75,13 +76,10 @@ class NotificationsFragment : Fragment() {
         }
 
         radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            val mode = if (checkedId == R.id.rb_web) ApiMode.WEB else ApiMode.APP
-            PrefsManager.setApiMode(requireContext(), mode)
-            AlertDialog.Builder(requireContext())
-                .setTitle("切换数据接口")
-                .setMessage("已切换为${mode.displayName}，需要重启应用才能生效。")
-                .setPositiveButton("确定", null)
-                .show()
+            if (checkedId == R.id.rb_app) {
+                Toast.makeText(requireContext(), "应用版接口已不再支持，请使用网页版", Toast.LENGTH_SHORT).show()
+                radioWeb.isChecked = true
+            }
         }
     }
 
