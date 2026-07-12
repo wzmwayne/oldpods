@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/navigation_home">
+
+    <fragment
+        android:id="@+id/navigation_home"
+        android:name="com.oldpods.app.ui.home.HomeFragment"
+        android:label="@string/nav_home" />
+
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.oldpods.app.ui.dashboard.DashboardFragment"
+        android:label="@string/nav_dashboard" />
+
+    <fragment
+        android:id="@+id/navigation_notifications"
+        android:name="com.oldpods.app.ui.notifications.NotificationsFragment"
+        android:label="@string/nav_notifications">
+        <action
+            android:id="@+id/action_notifications_to_login"
+            app:destination="@id/navigation_login" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_login"
+        android:name="com.oldpods.app.ui.login.LoginFragment"
+        android:label="登录" />
+
+    <fragment
+        android:id="@+id/navigation_forum"
+        android:name="com.oldpods.app.ui.forum.ForumFragment"
+        android:label="论坛" />
+
+    <fragment
+        android:id="@+id/navigation_detail"
+        android:name="com.oldpods.app.ui.detail.AppDetailFragment"
+        android:label="应用详情" />
+
+    <fragment
+        android:id="@+id/navigation_ai"
+        android:name="com.oldpods.app.ui.ai.AiFragment"
+        android:label="AI 功能" />
+
+    <fragment
+        android:id="@+id/navigation_search"
+        android:name="com.oldpods.app.ui.search.SearchFragment"
+        android:label="搜索" />
+
+    <fragment
+        android:id="@+id/navigation_download"
+        android:name="com.oldpods.app.ui.download.DownloadFragment"
+        android:label="下载" />
+
+    <fragment
+        android:id="@+id/navigation_update"
+        android:name="com.oldpods.app.ui.update.UpdateFragment"
+        android:label="更新" />
+
+</navigation>
