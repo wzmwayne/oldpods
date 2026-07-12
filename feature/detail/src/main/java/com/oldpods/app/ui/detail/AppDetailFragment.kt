@@ -2,15 +2,14 @@ package com.oldpods.app.ui.detail
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.webkit.WebChromeClient
-import android.webkit.WebSettings
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -19,11 +18,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.oldpods.app.common.HtmlParser
-import com.oldpods.app.model.DownloadLink
+import com.oldpods.app.model.ForumComment
 
 class AppDetailFragment : Fragment() {
 
@@ -49,32 +50,20 @@ class AppDetailFragment : Fragment() {
         val tvDescription = view.findViewById<TextView>(R.id.tv_description)
         val downloadContainer = view.findViewById<LinearLayout>(R.id.download_container)
         val rvScreenshots = view.findViewById<RecyclerView>(R.id.rv_screenshots)
-        val webView = view.findViewById<WebView>(R.id.webview_comments)
+        val rvComments = view.findViewById<RecyclerView>(R.id.rv_comments)
+        val tvNoComments = view.findViewById<TextView>(R.id.tv_no_comments)
         val progressBar = view.findViewById<ProgressBar>(R.id.progress_bar)
 
+        // Screenshots
         val screenshotAdapter = ScreenshotAdapter()
         rvScreenshots.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         rvScreenshots.adapter = screenshotAdapter
 
-        webView.settings.apply {
-            javaScriptEnabled = true
-            domStorageEnabled = true
-            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-        }
-        webView.webChromeClient = WebChromeClient()
-        webView.webViewClient = object : WebViewClient() {
-            override fun onPageFinished(view: WebView?, url: String?) {
-                super.onPageFinished(view, url)
-                view?.evaluateJavascript("""
-                    (function() {
-                        document.querySelectorAll('.pay-box, .pay-boxs, .single-related-posts, .post-author, .post-copyright, .post-navigation, .post-tags, .post-share, .comments-area, #respond, .page-header, .breadcrumb, .sidebar, .toc, .dahengfu').forEach(function(e){e.remove();});
-                        document.querySelectorAll('style').forEach(function(e){if(e.textContent.includes('pay-box'))e.remove();});
-                        return 'done';
-                    })();
-                """.trimIndent(), null)
-            }
-        }
-        webView.loadUrl("https://oldpods.cn/?p=${appId}#comments")
+        // Comments
+        val commentAdapter = CommentAdapter()
+        rvComments.layoutManager = LinearLayoutManager(context)
+        rvComments.adapter = commentAdapter
+        rvComments.isNestedScrollingEnabled = false
 
         viewModel.appInfo.observe(viewLifecycleOwner) { app ->
             if (app == null) return@observe
@@ -111,34 +100,33 @@ class AppDetailFragment : Fragment() {
 
             tvDescription.text = HtmlParser.parseDescription(html)
 
+            // Download links - already decoded with correct names by HtmlParser
             downloadContainer.removeAllViews()
             val links = HtmlParser.parseDownloadLinks(html)
             for (link in links) {
                 val btn = Button(requireContext()).apply {
                     text = link.name
                     setOnClickListener {
-                        when (link.type) {
-                            DownloadLink.LinkType.GOLINK -> {
-                                val decoded = HtmlParser.decodeGolink(link.url)
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(decoded))
-                                    startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "链接无效: $decoded", Toast.LENGTH_SHORT).show()
-                                }
-                            }
-                            else -> {
-                                try {
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
-                                    startActivity(intent)
-                                } catch (e: Exception) {
-                                    Toast.makeText(context, "链接无效", Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link.url))
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(context, "链接无效", Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
                 downloadContainer.addView(btn)
+            }
+        }
+
+        viewModel.comments.observe(viewLifecycleOwner) { list ->
+            if (list.isEmpty()) {
+                tvNoComments.visibility = View.VISIBLE
+                rvComments.visibility = View.GONE
+            } else {
+                tvNoComments.visibility = View.GONE
+                rvComments.visibility = View.VISIBLE
+                commentAdapter.submitList(list)
             }
         }
 
@@ -154,6 +142,8 @@ class AppDetailFragment : Fragment() {
 
         viewModel.fetchAppDetail(appId)
     }
+
+    // ========== Screenshot Adapter ==========
 
     class ScreenshotAdapter : RecyclerView.Adapter<ScreenshotAdapter.VH>() {
         private var items = emptyList<String>()
@@ -179,5 +169,86 @@ class AppDetailFragment : Fragment() {
         }
 
         override fun getItemCount() = items.size
+    }
+
+    // ========== Comment Adapter ==========
+
+    class CommentAdapter : ListAdapter<ForumComment, CommentAdapter.VH>(DiffCallback) {
+
+        object DiffCallback : DiffUtil.ItemCallback<ForumComment>() {
+            override fun areItemsTheSame(old: ForumComment, new: ForumComment) = old.id == new.id
+            override fun areContentsTheSame(old: ForumComment, new: ForumComment) = old == new
+        }
+
+        class VH(view: View) : RecyclerView.ViewHolder(view) {
+            val tvAvatar: TextView = view.findViewById(R.id.tv_avatar)
+            val tvAuthor: TextView = view.findViewById(R.id.tv_author)
+            val tvDate: TextView = view.findViewById(R.id.tv_date)
+            val tvContent: TextView = view.findViewById(R.id.tv_content)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+            val view = LayoutInflater.from(parent.context).inflate(R.layout.item_comment, parent, false)
+            return VH(view)
+        }
+
+        override fun onBindViewHolder(holder: VH, position: Int) {
+            val comment = getItem(position)
+
+            // Avatar: first letter with random color
+            val name = comment.authorName ?: "匿"
+            val firstChar = name.firstOrNull()?.toString() ?: "匿"
+            holder.tvAvatar.text = firstChar
+            val colors = intArrayOf(
+                Color.parseColor("#4CAF50"), Color.parseColor("#2196F3"),
+                Color.parseColor("#FF9800"), Color.parseColor("#E91E63"),
+                Color.parseColor("#9C27B0"), Color.parseColor("#00BCD4")
+            )
+            val color = colors[comment.authorName.hashCode().let { if (it < 0) -it else it } % colors.size]
+            val bg = holder.tvAvatar.background
+            if (bg is GradientDrawable) {
+                bg.setColor(color)
+            } else {
+                val drawable = GradientDrawable().apply {
+                    shape = GradientDrawable.OVAL
+                    setColor(color)
+                }
+                holder.tvAvatar.background = drawable
+            }
+
+            holder.tvAuthor.text = name
+            holder.tvDate.text = formatDate(comment.date)
+
+            val contentHtml = comment.getContentText()
+            if (contentHtml.isNotEmpty()) {
+                holder.tvContent.text = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                    Html.fromHtml(contentHtml, Html.FROM_HTML_MODE_LEGACY)
+                } else {
+                    @Suppress("DEPRECATION")
+                    Html.fromHtml(contentHtml)
+                }
+                holder.tvContent.visibility = View.VISIBLE
+            } else {
+                holder.tvContent.visibility = View.GONE
+            }
+        }
+
+        private fun formatDate(dateStr: String?): String {
+            if (dateStr == null) return ""
+            return try {
+                // "2026-07-12T11:38:00" -> "07-12 11:38"
+                val parts = dateStr.split("T")
+                if (parts.size >= 2) {
+                    val datePart = parts[0] // "2026-07-12"
+                    val timePart = parts[1].substringBeforeLast(":") // "11:38"
+                    val md = datePart.substring(5) // "07-12"
+                    "$md $timePart"
+                } else {
+                    dateStr
+                }
+            } catch (e: Exception) {
+                dateStr
+            }
+        }
     }
 }
